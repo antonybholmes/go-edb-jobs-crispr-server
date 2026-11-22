@@ -1,0 +1,16 @@
+<!-- email.html -->
+{{define "layout"}}
+<!DOCTYPE html>
+<html>
+  <body>
+    <p>Hi {{.Name}},</p>
+    <br />
+    <p>
+      Your account information was updated. If you did not make this change,
+      please contact support.
+    </p>
+    {{template "footer" . }}
+  </body>
+</html>
+
+{{end}}

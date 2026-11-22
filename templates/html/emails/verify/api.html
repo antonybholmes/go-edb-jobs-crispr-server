@@ -1,0 +1,13 @@
+<!-- email.html -->
+{{define "layout"}}
+<!DOCTYPE html>
+<html>
+  <body>
+    <p>Hi {{.Name}},</p>
+    <p>Please verify your email address using this code: {{.Payload.Data}}</p>
+    <br />
+    {{template "footer" . }}
+  </body>
+</html>
+
+{{end}}
