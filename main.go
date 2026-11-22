@@ -6,6 +6,7 @@ import (
 	"github.com/antonybholmes/go-edb-jobs-crispr-server/config"
 	"github.com/antonybholmes/go-jobs"
 	awsjobs "github.com/antonybholmes/go-jobs/aws"
+	awssys "github.com/antonybholmes/go-sys/aws"
 	"github.com/antonybholmes/go-sys/env"
 	"github.com/antonybholmes/go-sys/log"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -61,7 +62,7 @@ func main() {
 	//jobCompletedSender := jobsaws.NewSQSJobQueue(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Completed)
 	jobCompletedSender := awsjobs.NewSQSJobStatusQueue(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Completed)
 
-	sqsConsumer, err := awsjobs.NewSQSConsumer(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Crispr,
+	sqsConsumer, err := awssys.NewSQSConsumer(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Crispr,
 		appconfig.AWS.SQS.Threads,
 		appconfig.AWS.SQS.WaitTimeSecs,
 	)
@@ -75,7 +76,7 @@ func main() {
 	jobConsumer.Consume(ctx, func(ctx context.Context, job *jobs.Job) error {
 		log.Info().Str("jobId", job.ID).Msg("Received job")
 
-		files := []string{}
+		files := []*jobs.JobFile{}
 
 		// Once finished, notify the completion queue with the job status
 		jobStatusItem := jobs.NewJobStatusQueueItem(job.ID, jobs.JobStatusCompleted, "", files)
