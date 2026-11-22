@@ -5,7 +5,7 @@ import (
 
 	"github.com/antonybholmes/go-edb-jobs-crispr-server/config"
 	"github.com/antonybholmes/go-jobs"
-	jobsaws "github.com/antonybholmes/go-jobs/aws"
+	awsjobs "github.com/antonybholmes/go-jobs/aws"
 	"github.com/antonybholmes/go-sys/env"
 	"github.com/antonybholmes/go-sys/log"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
@@ -58,14 +58,15 @@ func main() {
 
 	sqsClient := sqs.NewFromConfig(cfg)
 
-	jobCompletedSender := jobsaws.NewSQSJobQueue(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Completed)
+	//jobCompletedSender := jobsaws.NewSQSJobQueue(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Completed)
+	jobCompletedSender := awsjobs.NewSQSJobStatusQueue(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Completed)
 
-	sqsConsumer, err := jobsaws.NewSQSConsumer(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Crispr,
+	sqsConsumer, err := awsjobs.NewSQSConsumer(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Crispr,
 		appconfig.AWS.SQS.Threads,
 		appconfig.AWS.SQS.WaitTimeSecs,
 	)
 
-	jobConsumer := jobsaws.NewSQSJobConsumer(sqsConsumer)
+	jobConsumer := awsjobs.NewSQSJobConsumer(sqsConsumer)
 
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create email consumer")
@@ -74,8 +75,11 @@ func main() {
 	jobConsumer.Consume(ctx, func(ctx context.Context, job *jobs.Job) error {
 		log.Info().Str("jobId", job.ID).Msg("Received job")
 
-		// notify completion queue
-		jobCompletedSender.SendJob(ctx, job)
+		files := []string{}
+
+		// Once finished, notify the completion queue with the job status
+		jobStatusItem := jobs.NewJobStatusQueueItem(job.ID, jobs.JobStatusCompleted, "", files)
+		jobCompletedSender.SendJobStatus(ctx, jobStatusItem)
 
 		return nil
 	})
