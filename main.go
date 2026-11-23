@@ -84,5 +84,4 @@ func main() {
 	jobConsumer.Consume(ctx, func(ctx context.Context, job *jobs.Job) error {
 		return processor.ProcessCrisprFile(ctx, job)
 	})
-
 }
