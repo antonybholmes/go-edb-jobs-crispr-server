@@ -42,11 +42,10 @@ type AppConfig struct {
 }
 
 const (
-	AppName = "Experiments Mail Server"
-	AppId   = "edb-mailserver"
+	AppName = "Experiments Crispr Job Server"
+	AppId   = "edb-crispr-job-server"
 	//EmailFrom      = "Experiments Team <donotreply@rdf-lab.org>"
-	ProductName = "Experiments"
-	//TextDoNotReply = "Please do not reply to this email as we are not able to respond to messages sent to this address." //"Please do not reply to this message. It was sent from a notification-only email address that we don't monitor."
+	Copyright  = "Copyright (C) 2026 Antony Holmes. All rights reserved."
 	ConfigFile = "config/app.yaml"
 )
 
