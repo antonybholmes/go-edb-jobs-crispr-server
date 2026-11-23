@@ -10,6 +10,7 @@ import (
 	"github.com/antonybholmes/go-sys/env"
 	"github.com/antonybholmes/go-sys/log"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
@@ -57,6 +58,7 @@ func main() {
 		log.Fatal().Err(err).Msg("Failed to load AWS config")
 	}
 
+	s3Client := s3.NewFromConfig(cfg)
 	sqsClient := sqs.NewFromConfig(cfg)
 
 	//jobCompletedSender := jobsaws.NewSQSJobQueue(sqsClient, appconfig.AWS.SQS.QueueURLs.Jobs.Completed)
@@ -69,20 +71,18 @@ func main() {
 
 	jobConsumer := awsjobs.NewSQSJobConsumer(sqsConsumer)
 
+	s3Store := awssys.NewS3Store(s3Client, appconfig.AWS.S3.Buckets.Jobs)
+
+	s3JobStore := awsjobs.NewS3JobStore(s3Store)
+
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to create email consumer")
 	}
 
+	processor := NewCrisprProcessor(s3Store, s3JobStore, jobCompletedSender)
+
 	jobConsumer.Consume(ctx, func(ctx context.Context, job *jobs.Job) error {
-		log.Info().Str("jobId", job.ID).Msg("Received job")
-
-		files := []*jobs.JobFile{}
-
-		// Once finished, notify the completion queue with the job status
-		jobStatusItem := jobs.NewJobStatusQueueItem(job.ID, jobs.JobStatusCompleted, "", files)
-		jobCompletedSender.SendJobStatus(ctx, jobStatusItem)
-
-		return nil
+		return processor.ProcessCrisprFile(ctx, job)
 	})
 
 }

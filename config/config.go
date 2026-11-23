@@ -23,6 +23,11 @@ type AppConfig struct {
 		Version    sys.VersionInfo `yaml:"-"`
 	} `yaml:"app"`
 	AWS struct {
+		S3 struct {
+			Buckets struct {
+				Jobs string `yaml:"-"`
+			} `yaml:"-"`
+		} `yaml:"s3"`
 		SQS struct {
 			QueueURLs struct {
 				Jobs struct {
@@ -93,6 +98,8 @@ func load() *AppConfig {
 
 	cfg.Redis.Addr = os.Getenv("REDIS_ADDR")
 	cfg.Redis.Password = os.Getenv("REDIS_PASSWORD")
+
+	cfg.AWS.S3.Buckets.Jobs = os.Getenv("AWS_S3_BUCKET_JOBS")
 
 	cfg.AWS.SQS.QueueURLs.Jobs.Crispr = os.Getenv("AWS_SQS_QUEUE_JOBS_CRISPR_URL")
 	cfg.AWS.SQS.QueueURLs.Jobs.Completed = os.Getenv("AWS_SQS_QUEUE_JOBS_COMPLETED_URL")
